@@ -1,4 +1,4 @@
-name: Test runner
+name: Test Runner
 
 on:
   push:
@@ -9,15 +9,10 @@ jobs:
   test-runner:
     runs-on:
       - self-hosted
-      - windows
+      - Windows
       - x64
     steps:
-      - name: Verif
-        run: echo "Verif"
-
-      - name: tests de commandes
+      - uses: actions/checkout@v2
+      - name: Run Tests
         run: |
-          echo "Local runner OK"
-          hostname
-          whoami
-          uname -a
+          echo "Running tests..."
