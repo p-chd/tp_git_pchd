@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test-runner:
@@ -13,6 +16,36 @@ jobs:
       - x64
     steps:
       - uses: actions/checkout@v2
-      - name: Run Tests
+      - name: Validate index.html
+        shell: pwsh
         run: |
-          echo "Running tests..."
+          $path = Join-Path $env:GITHUB_WORKSPACE 'index.html'
+
+          if (-not (Test-Path -LiteralPath $path)) {
+            Write-Error "index.html not found at: $path"
+            exit 1
+          }
+
+          $html = Get-Content -LiteralPath $path -Raw
+
+          if ([string]::IsNullOrWhiteSpace($html)) {
+            Write-Error 'index.html is empty.'
+            exit 1
+          }
+
+          $requiredPatterns = @(
+            '(?is)<\\s*!doctype\\s+html\\s*>' ,
+            '(?is)<\\s*html\\b' ,
+            '(?is)<\\s*head\\b' ,
+            '(?is)<\\s*body\\b' ,
+            '(?is)</\\s*html\\s*>'
+          )
+
+          foreach ($pattern in $requiredPatterns) {
+            if ($html -notmatch $pattern) {
+              Write-Error "index.html failed validation. Missing pattern: $pattern"
+              exit 1
+            }
+          }
+
+          Write-Host 'index.html looks OK.'
