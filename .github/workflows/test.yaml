@@ -29,23 +29,23 @@ jobs:
         run: npx -y htmlhint "index.html"
 
 
-  deploy:
-    needs: html_lint
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # deploy:
+  #   needs: html_lint
+  #   if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Prepare site
-        run: |
-          mkdir -p public
-          cp index.html public/index.html
+  #     - name: Prepare site
+  #       run: |
+  #         mkdir -p public
+  #         cp index.html public/index.html
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          force_orphan: true
+  #     - name: Deploy to gh-pages branch
+  #       uses: peaceiris/actions-gh-pages@v4
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         publish_dir: ./public
+  #         publish_branch: gh-pages
+  #         force_orphan: true
