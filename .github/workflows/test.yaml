@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test-runner:
+  lint_html:
     runs-on:
       - self-hosted
       - Windows
@@ -36,18 +36,32 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    needs: test-runner
+    needs: lint_html
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - Windows
+      - x64
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Prepare site
+        shell: powershell
         run: |
-          mkdir -p _site
-          rsync -av --delete --exclude='.git' --exclude='.github' --exclude='.gitignore' ./ _site/
+          if (Test-Path -LiteralPath '_site') {
+            Remove-Item -LiteralPath '_site' -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path '_site' | Out-Null
+
+          robocopy . _site /MIR /XD .git .github /XF .gitignore
+          $rc = $LASTEXITCODE
+          if ($rc -ge 8) {
+            Write-Error "robocopy failed with exit code $rc"
+            exit $rc
+          }
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
